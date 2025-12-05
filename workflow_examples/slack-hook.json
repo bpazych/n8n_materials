@@ -1,0 +1,1747 @@
+{
+  "name": "slack-hook",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## START\n[Slack trigger](https://docs.n8n.io/integrations/builtin/trigger-nodes/n8n-nodes-base.slacktrigger/) to receive user message",
+        "height": 688,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        -800
+      ],
+      "id": "6953a327-34c4-4695-8c85-3b8ff0bf0dd2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "29b9d3be-e094-48dd-a2a7-d4c1edd8e061",
+              "leftValue": "={{ $json.thread_ts }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -496,
+        -496
+      ],
+      "id": "ba9ed069-f991-43c4-9f53-73b9802f2310",
+      "name": "Filter all except user messages"
+    },
+    {
+      "parameters": {
+        "content": "## PREPROCESSING\nTranscribe audio to text or use text directly from slack trigger",
+        "height": 688,
+        "width": 1104,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -800
+      ],
+      "id": "c31cb7e9-3bca-4d1e-843a-971f70809b33",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.files }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "array",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "bb5c8a4c-6abf-4c1d-8ede-8553839cdbb8"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "process file"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "42e75c93-bb09-4fb1-a5f5-72816d7e5880",
+                    "leftValue": "={{ $json.files }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "array",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "process text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -272,
+        -496
+      ],
+      "id": "5805c3f2-a5b6-47e0-a7d0-b4d83cf2d163",
+      "name": "Message type switcher"
+    },
+    {
+      "parameters": {
+        "content": "## DEFINE INTENTION\nUse AI Agent for interpretation user intention",
+        "height": 688,
+        "width": 784,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        592,
+        -800
+      ],
+      "id": "2ed66eaf-d7ef-4f4e-9eb5-215a6b18db13",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "GPT-3.5-TURBO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Create message for user in format of log based on json. That message will be used as log stack trace.\n\nin json\n - intention - what manager want to do\n - users - users to invite\n - department - department to invite\n - time - when that event\n - event - title and agenda",
+              "role": "system"
+            },
+            {
+              "content": "={{ JSON.stringify($json.output) }}",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        944,
+        -752
+      ],
+      "id": "0751a6f6-ae8d-42a5-9916-8c5406115ee1",
+      "name": "Get intermediate result",
+      "credentials": {
+        "openAiApi": {
+          "id": "B9ikLwtPuOQus5Wl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09R8NTCLHY",
+          "mode": "list",
+          "cachedResultName": "test_n8n"
+        },
+        "text": "={{ $json.message.content }}",
+        "otherOptions": {
+          "thread_ts": {
+            "replyValues": {
+              "thread_ts": "={{ $('demo_ch_trigger').item.json.ts }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1216,
+        -752
+      ],
+      "id": "d38c9094-8617-4b06-b1ff-13588bfabbbc",
+      "name": "Send intermediate message",
+      "webhookId": "62f81c16-d87d-40ee-a22e-de57ca17e6f7",
+      "credentials": {
+        "slackApi": {
+          "id": "wTpnxVitiDlDxrNY",
+          "name": "Voice manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## RETRIEVE DATA \nGet actual data from DB by using interpretation result",
+        "height": 688,
+        "width": 784,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        -800
+      ],
+      "id": "3f44156a-5c3c-425e-82a8-f2c3819f165b",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09R8NTCLHY",
+          "mode": "list",
+          "cachedResultName": "test_n8n"
+        },
+        "text": "={{ $json.item }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2032,
+        -752
+      ],
+      "id": "e57d9704-efd4-4573-98c3-6cd942a66f56",
+      "name": "Return to user with error",
+      "webhookId": "2fa6673e-84a5-45c4-92cd-18ee0b9d18d3",
+      "credentials": {
+        "slackApi": {
+          "id": "wTpnxVitiDlDxrNY",
+          "name": "Voice manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09R8NTCLHY",
+          "mode": "list",
+          "cachedResultName": "test_n8n"
+        },
+        "text": "Not clear title and context of future meeting. Provide more into",
+        "otherOptions": {
+          "thread_ts": {
+            "replyValues": {
+              "thread_ts": "={{ $('demo_ch_trigger').item.json.ts }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1152,
+        -288
+      ],
+      "id": "0b8b31e3-92a7-4909-856c-cc87f58ee8d7",
+      "name": "Event data missing",
+      "webhookId": "d64b9f7b-c51e-4b10-8004-049bf25c86e6",
+      "credentials": {
+        "slackApi": {
+          "id": "wTpnxVitiDlDxrNY",
+          "name": "Voice manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## CREATE ENTITIES \n",
+        "height": 688,
+        "width": 1968,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2224,
+        -800
+      ],
+      "id": "e3444481-735f-4778-b1ce-ea8c1b856ab7",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## SEND MEETING INVITATION\n",
+        "height": 688,
+        "width": 960,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4224,
+        -800
+      ],
+      "id": "611559b4-f72d-4158-a699-314d4daf8830",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5dde6edd-afaf-43a4-afd1-74dd80ebf80d",
+              "name": "departments",
+              "value": "={{ $('AI Retrieve data1').item.json.output.entities.departments }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3168,
+        -416
+      ],
+      "id": "5f2b0996-426b-4e64-a97a-e4294689abe9",
+      "name": "Get departments"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5dde6edd-afaf-43a4-afd1-74dd80ebf80d",
+              "name": "users",
+              "value": "={{ $('AI Retrieve data1').item.json.output.entities.users }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3392,
+        -608
+      ],
+      "id": "180cb1a8-a196-4cc5-ae86-76ecb76c6630",
+      "name": "Get users"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": " departments",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3392,
+        -416
+      ],
+      "id": "7730a6f7-5c3d-4cb0-82b0-d35ac9296765",
+      "name": "Split departments"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "users",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3616,
+        -608
+      ],
+      "id": "861b9afd-d9af-4a44-b616-063f8ed0e58c",
+      "name": "Split users"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        -288
+      ],
+      "id": "66a353ad-5ead-45a2-b0c6-a879dcd40ddb",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "B9ikLwtPuOQus5Wl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        736,
+        -240
+      ],
+      "id": "9978876c-8e77-4d5b-96c1-b4b75b6022f6",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"intentions\": [\"search\"],\n\t\"users\": [\"David\"],\n    \"departments\":[\"\"],\n    \"time\":{\n      \"from\":{\n        \"year\": \"2025\",\n        \"month\": \"11\",\n        \"day\": \"11\",\n        \"time\":\"15:00\"\n      },\n      \"to\":{\n        \"year\": \"2025\",\n        \"month\": \"11\",\n        \"day\": \"11\",\n        \"time\":\"16:00\"\n      }\n    },\n    \"event\":{\n      \"title\": \"\",\n      \"agenda\":\"\"\n    },\n    \"message\":\"\"  \n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        848,
+        -272
+      ],
+      "id": "1ebd7a7d-0853-4fbe-ab8a-a29954a42a99",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "create event",
+                    "rightValue": "={{ $json.output.intentions.find(x=>x==\"create event\") }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e26dcd64-d4c5-4bdf-ae60-b5b78fbd5a95"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "search intention"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "61e6a7a2-6797-4b7d-9551-b3689129c381",
+                    "leftValue": "undefined",
+                    "rightValue": "={{ $json.output.intentions.find(x=>x==\"undefined\") }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "undefined intention"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1152,
+        -512
+      ],
+      "id": "66fea0a6-e8ef-4bc3-91a5-1783947ad223",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1424,
+        -496
+      ],
+      "id": "34e20cba-b859-48ac-8eef-b0a57ce7aa6d",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "B9ikLwtPuOQus5Wl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('extract useful info1').item.json.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1552,
+        -496
+      ],
+      "id": "8d9bf55f-7d2c-4af8-86cd-741790b8f86f",
+      "name": "Simple Memory3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('extract useful info1').first().json.prompt }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=> You are assistant of company \"Horns & Hooves\"\n> You help manager with meetings organisation and teams / users time management \n> Role: assistant, helper\n\n# Goals\n- determine manager's [intention](#intention)\n- select from message target [entities](#entities)\n\n## Intention\n\n - create event - manager want to create meetings. User should provide info: \n    - time - from/to, \n    - entities - department, departments, user, users, deparment and user\n    - meeting title - extract from manager message\n    - agenda - extract from manager message, but if you fail to understand agenda create your own short based on message context\n - undefined - if none above matched. Generate message to manager that you dont have enough data and ask provide what are you lack\n\n## Entities\n- user - name, email, phone, can work with couple department at the same time\n- deparment - name, responsibility\n- meeting - event for selected department(s) and user(s)\n\n## Input\n- manager message with intention\n\n## Output\n- intentions: string array. possible values [here](#intention)\n- users: string array. Select from message directly mentioned user names, default empty array\n- departments: string array. Select from message mentioned deparment names. Strip only to unit name like - business, development or support\n- time:  default empty object with from and to keys.  Output - object with keys - from/to nested object - year,month,day,time\n   - from/to: if manager not expcilitly state where from to, then first consider as from, second as to\n      - year - default current year or provided by manager\n      - month - default current month or provided by manager\n      - day - default on tomorrow or provided by manager\n      - time - default null or provided by manager. Format hh:mm. If manager indicated some like - morning, after noon, evening, then pick hour which can satisfy. example - morning its 10-12am, you can pick random in that range. Calculate date relative to [additional](#additional) current date\n- event: object; keys\n    - title - try to determine title from manager message\n    - agenda - try to determine title from manager message. but if you fail to understand agenda create your own short based on message context\n- message: optional, additional question to manager. required if intention is undefined\n\n## Additional\n\nCurrent date - {{ $now }}\n\n## Prompt\n\n{{ $('extract useful info1').first().json.prompt }}\n\n\n",
+          "maxIterations": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        -576
+      ],
+      "id": "56d08b56-a7d7-4d7b-9c66-e36e5ff36de5",
+      "name": "AI Intention detector1"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "user",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "name",
+              "condition": "fullText",
+              "searchFunction": "plfts",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions0_Field_Value', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        -496
+      ],
+      "id": "a45ae9dc-777a-450c-a81f-84126684d729",
+      "name": "users1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AM6iQAHgMTPuFdBx",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "department",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "name",
+              "condition": "fullText",
+              "searchFunction": "plfts",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions0_Field_Value', ``, 'string') }}"
+            },
+            {
+              "keyName": "description",
+              "condition": "fullText",
+              "searchFunction": "fts",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions1_Field_Value', ``, 'string') }}"
+            },
+            {
+              "keyName": "responsibility",
+              "condition": "fullText",
+              "searchFunction": "plfts",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions2_Field_Value', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        -496
+      ],
+      "id": "f2efb8e3-18d9-45b1-9d0a-5e019eb15863",
+      "name": "departments1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AM6iQAHgMTPuFdBx",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "meeting",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "title",
+              "condition": "fullText",
+              "searchFunction": "fts",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions0_Field_Value', ``, 'string') }}"
+            },
+            {
+              "keyName": "agenda",
+              "condition": "fullText",
+              "searchFunction": "fts",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions1_Field_Value', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        1936,
+        -496
+      ],
+      "id": "7bb3df40-9907-4281-8ca0-39a6141f6d8b",
+      "name": "events1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AM6iQAHgMTPuFdBx",
+          "name": "Supabase account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"message\": \"message to user\",\n\t\"entities\": {\n      \"users\":[{\n        \"id\":1,\n        \"name\": \"David\",\n        \"email\": \"asdf@asdf\"\n      }],\n      \"departments\":[{\n        \"id\":1,\n        \"name\":\"business unit\",\n        \"description\":\"some description\",\n        \"responsibility\":\"business trategy\"\n      }],\n      \"events\":[{\n        \"id\":1,\n        \"title\":\"new opportunity\",\n        \"agenda\":\"adsf\",\n        \"date\":\"2025-11-11T15:00\"\n      }]\n    }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2064,
+        -496
+      ],
+      "id": "08a31215-08f9-4878-b624-47149eb9a2f6",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Search for me users {{ $json.output.users }} ; also departments {{ $json.output.departments }} and prepare events {{ JSON.stringify($json.output.event) }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=> You assistant responsible for retrieval data on manager request from DB\n\n## Tools\n\nSupabase integration\navailable tables \n- user\n- department\n- meeting\n- user_meeting\n- user_department\n\nSearch for entities by using LIKE, target columns is exist: name,description,email,title,agenda,position\n\n## Flow\n\n if manager provide users (array of strings) - search in user table each user by name or email column. If query fail for some user - prepare message about missing user\n if manager provide departments (array of strings) - serach in department table in name or description column. If query fail for some department - prepare message about missing department. Do not include departments which directly was not invited by manager\n\nManager can ask about users, departments or events and don't provide any real values - then ignore particular requests as if there was nothing.\n\n## Output\n\nObject \n- message - for user with included all results from [flow](#flow)\n- entites - include here all found entities\n\n\n",
+          "maxIterations": 10
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        -720
+      ],
+      "id": "a5d36bb0-f351-4c28-b841-48ccb876371d",
+      "name": "AI Retrieve data1",
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09R8NTCLHY",
+          "mode": "list",
+          "cachedResultName": "test_n8n"
+        },
+        "text": "={{ $('AI Intention detector1').item.json.output.message }}",
+        "otherOptions": {
+          "thread_ts": {
+            "replyValues": {
+              "thread_ts": "={{ $('demo_ch_trigger').item.json.ts }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1744,
+        -320
+      ],
+      "id": "13b262c8-eb06-4e45-ab05-4606e2a4ab20",
+      "name": "Undefined intention, get back to channel1",
+      "webhookId": "155c2031-24ba-4430-8c77-098abb4c8e67",
+      "credentials": {
+        "slackApi": {
+          "id": "wTpnxVitiDlDxrNY",
+          "name": "Voice manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const timeobject = $('AI Intention detector1').first().json.output.time;\n\n\nfunction convertDateObjectToString(obj){\n  return `${obj.year}-${obj.month}-${obj.day}T${obj.time}`\n}\nreturn {\n  \"from\": convertDateObjectToString(timeobject.from),\n  \"to\": convertDateObjectToString(timeobject.to)\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        -512
+      ],
+      "id": "3730c998-748e-4baa-a4f1-1d5b352fe607",
+      "name": "convert datetime1"
+    },
+    {
+      "parameters": {
+        "tableId": "meeting",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $('AI Intention detector1').item.json.output.event.title }}"
+            },
+            {
+              "fieldId": "agenda",
+              "fieldValue": "={{ $('AI Intention detector1').item.json.output.event.agenda }}"
+            },
+            {
+              "fieldId": "date_from",
+              "fieldValue": "={{ $json.from }}"
+            },
+            {
+              "fieldId": "date_to",
+              "fieldValue": "={{ $json.to }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2496,
+        -512
+      ],
+      "id": "e3c8f4d8-c48a-47bd-9e5b-7d532f8e6e32",
+      "name": "create meeting1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AM6iQAHgMTPuFdBx",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "user_meeting",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('AI Retrieve data1').item.json.output.entities.users[0].id }}"
+            },
+            {
+              "fieldId": "meeting_id",
+              "fieldValue": "={{ $('create meeting1').first().json.id}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3840,
+        -608
+      ],
+      "id": "64632813-08aa-453a-81cd-730a7b67ddcf",
+      "name": "create meeting for user1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AM6iQAHgMTPuFdBx",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('is event data exist2').first().json.output.users }}",
+                    "rightValue": "={{ $json.output.entities.users }}",
+                    "operator": {
+                      "type": "array",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "15baf074-7918-4b58-b696-033cd1be4a49"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "invite users"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7732c4df-1ea2-426c-a714-1d41a149e05b",
+                    "leftValue": "={{ $('is event data exist2').item.json.output.departments }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "array",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "invite department"
+            }
+          ]
+        },
+        "options": {
+          "allMatchingOutputs": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        2944,
+        -512
+      ],
+      "id": "765a0890-34cd-4cb0-8b33-afe118b2b621",
+      "name": "invitation processor1"
+    },
+    {
+      "parameters": {
+        "useCustomSchema": true,
+        "tableId": "user_meeting",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $json.user_id }}"
+            },
+            {
+              "fieldId": "meeting_id",
+              "fieldValue": "={{ $('create meeting1').first().json.id}}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "1"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3840,
+        -416
+      ],
+      "id": "236642e7-5ddb-47d3-a33b-a54004b19a96",
+      "name": "create meeting for department user1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AM6iQAHgMTPuFdBx",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4064,
+        -512
+      ],
+      "id": "540b6119-98c6-4711-97ee-91103543d1d8",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2720,
+        -512
+      ],
+      "id": "199d9ef5-6f12-4e4b-8ed4-7578df9b7de6",
+      "name": "Wait1",
+      "webhookId": "eded060d-317e-4e6e-b427-8460acadd63b"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "pahlavaubivca@gmail.com",
+          "mode": "list",
+          "cachedResultName": "pahlavaubivca@gmail.com"
+        },
+        "start": "={{ $('convert datetime1').first().json.from }}",
+        "end": "={{ $('convert datetime1').first().json.to }}",
+        "additionalFields": {
+          "attendees": [
+            "=bohdan.pazych.sigma@gmail.com"
+          ],
+          "description": "={{ $('AI Intention detector1').first().json.output.event.title }}",
+          "summary": "={{ $('AI Intention detector1').first().json.output.event.agenda }}\n\nInvitation for {{ JSON.stringify($('Get all related users1').all().map(x=>x.json.name)) }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        4736,
+        -512
+      ],
+      "id": "e3b2bf46-b3ce-4e40-b4b5-8231aad563b2",
+      "name": "Create an event1",
+      "executeOnce": true,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "PGxtteTdrfjChT7Y",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "user_department",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "department_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3616,
+        -416
+      ],
+      "id": "1dc42671-0e68-41bd-bef7-03bd22c7b56a",
+      "name": "get department users1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "AM6iQAHgMTPuFdBx",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst dUsers= $('get department users1').all();\nconst specialUsers = $('AI Retrieve data1').first().json.output.entities.users\n\nconst allUserList = dUsers.map(u=>u.json.user_id).concat(specialUsers.map(u=>u.id))\nreturn {\n  userIds: [...new Set(allUserList)]\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4288,
+        -512
+      ],
+      "id": "205fac1d-c1ec-4acd-87b0-14aaea7fa50e",
+      "name": "user ids1"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09R8NTCLHY",
+          "mode": "list",
+          "cachedResultName": "test_n8n"
+        },
+        "text": "Event created",
+        "otherOptions": {
+          "thread_ts": {
+            "replyValues": {
+              "thread_ts": "={{ $('demo_ch_trigger').first().json.ts }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        4960,
+        -512
+      ],
+      "id": "7427a16d-9999-4c37-8800-cc7a9b88a8df",
+      "name": "Send event created1",
+      "webhookId": "dda9ad62-4967-47db-b40c-2f96a6a75996",
+      "credentials": {
+        "slackApi": {
+          "id": "wTpnxVitiDlDxrNY",
+          "name": "Voice manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://jbqqmlnzthhxsrlagcdv.supabase.co/rest/v1/user",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "*,id"
+            },
+            {
+              "name": "id",
+              "value": "=in.({{ $json.userIds }})"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4512,
+        -512
+      ],
+      "id": "a05465c2-8054-407a-963a-aa12344bf095",
+      "name": "Get all related users1",
+      "executeOnce": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "AM6iQAHgMTPuFdBx",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        176,
+        -576
+      ],
+      "id": "93692cbf-1440-49b2-82ba-3438acf310df",
+      "name": "Transcribe a recording1",
+      "credentials": {
+        "openAiApi": {
+          "id": "B9ikLwtPuOQus5Wl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.files[0].url_private_download }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer xoxb-9843203511767-9878791860465-alZF5vyBioicnDDyttQ6AlQL"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -48,
+        -576
+      ],
+      "id": "93a2c067-7b4a-43bb-b4ef-c3449873c80d",
+      "name": "Fetch audio file1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ef5dfff1-92c8-421d-ae11-5bfb8fd9d72e",
+              "name": "=slack_object",
+              "value": "={{ $('demo_ch_trigger').first().json }}",
+              "type": "string"
+            },
+            {
+              "id": "83c03b8e-139a-450c-b4f3-775c6574d9d4",
+              "name": "sessionId",
+              "value": "={{ $('demo_ch_trigger').first().json.ts }}",
+              "type": "string"
+            },
+            {
+              "id": "dfbb3a56-7962-46b8-9cfb-78e03f9996fd",
+              "name": "prompt",
+              "value": "={{ !$('demo_ch_trigger').first().json.files ? $('demo_ch_trigger').first().json.blocks[0]?.elements[0]?.elements[1]?.text : $('Transcribe a recording1').first().json.text }} ",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        -496
+      ],
+      "id": "0f5298e0-994e-4b48-96a6-656d42d300bb",
+      "name": "extract useful info1"
+    },
+    {
+      "parameters": {
+        "trigger": [
+          "message",
+          "app_mention"
+        ],
+        "channelId": {
+          "__rl": true,
+          "value": "C09R8NTCLHY",
+          "mode": "list",
+          "cachedResultName": "test_n8n"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        -496
+      ],
+      "id": "b4612026-68b2-427d-87bc-c50efb36d4af",
+      "name": "demo_ch_trigger",
+      "webhookId": "9ca32444-60fe-41fd-9bd2-55187408b41a",
+      "credentials": {
+        "slackApi": {
+          "id": "wTpnxVitiDlDxrNY",
+          "name": "Voice manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "daa01b68-25df-4de9-aa83-d11e60efed27",
+              "leftValue": "={{ $('AI Intention detector1').item.json.output.event }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        944,
+        -416
+      ],
+      "id": "9c4d8865-44d2-4d50-ab42-670daa73baf9",
+      "name": "is event data exist2"
+    }
+  ],
+  "pinData": {
+    "demo_ch_trigger": [
+      {
+        "json": {
+          "type": "message",
+          "user": "U09S2UD64DN",
+          "ts": "1763129612.526159",
+          "client_msg_id": "58d2d2d0-a4a3-4a1e-953b-06ec6495747d",
+          "text": "<@U09RUP9RADP> hi! i want create meeting on tomorrow morning. We need talk about new business opportunity with or client Prebid. Invite please all from development unit and separately invite David",
+          "team": "T09QT5ZF1NK",
+          "blocks": [
+            {
+              "type": "rich_text",
+              "block_id": "kCdgf",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "user",
+                      "user_id": "U09RUP9RADP"
+                    },
+                    {
+                      "type": "text",
+                      "text": " hi! i want create meeting on tomorrow morning. We need talk about new business opportunity with or client Prebid. Invite please all from development unit and separately invite David"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "channel": "C09R8NTCLHY",
+          "assistant_thread": {
+            "action_token": "9945563795280.9843203511767.cef656d941ecd6a2e5478fac043b532f"
+          },
+          "event_ts": "1763129612.526159",
+          "channel_type": "channel"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Filter all except user messages": {
+      "main": [
+        [
+          {
+            "node": "Message type switcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message type switcher": {
+      "main": [
+        [
+          {
+            "node": "Fetch audio file1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract useful info1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get intermediate result": {
+      "main": [
+        [
+          {
+            "node": "Send intermediate message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get departments": {
+      "main": [
+        [
+          {
+            "node": "Split departments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get users": {
+      "main": [
+        [
+          {
+            "node": "Split users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split departments": {
+      "main": [
+        [
+          {
+            "node": "get department users1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split users": {
+      "main": [
+        [
+          {
+            "node": "create meeting for user1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Intention detector1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Intention detector1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Intention detector1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "AI Retrieve data1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Undefined intention, get back to channel1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Retrieve data1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Retrieve data1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Intention detector1": {
+      "main": [
+        [
+          {
+            "node": "Get intermediate result",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "is event data exist2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "users1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Retrieve data1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "departments1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Retrieve data1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "events1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Retrieve data1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Retrieve data1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Retrieve data1": {
+      "main": [
+        [
+          {
+            "node": "convert datetime1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return to user with error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert datetime1": {
+      "main": [
+        [
+          {
+            "node": "create meeting1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create meeting1": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create meeting for user1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "invitation processor1": {
+      "main": [
+        [
+          {
+            "node": "Get users",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get departments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create meeting for department user1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "user ids1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "invitation processor1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event1": {
+      "main": [
+        [
+          {
+            "node": "Send event created1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get department users1": {
+      "main": [
+        [
+          {
+            "node": "create meeting for department user1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "user ids1": {
+      "main": [
+        [
+          {
+            "node": "Get all related users1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all related users1": {
+      "main": [
+        [
+          {
+            "node": "Create an event1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording1": {
+      "main": [
+        [
+          {
+            "node": "extract useful info1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch audio file1": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract useful info1": {
+      "main": [
+        [
+          {
+            "node": "AI Intention detector1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "demo_ch_trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter all except user messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is event data exist2": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Event data missing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bccb40ed-0fb1-4975-ad3b-ab9beb1508fa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc78cbc1a2553fd481d42da99d71934367ccaba215b7668ea5470221cdd38d8e"
+  },
+  "id": "hggbjYCIAbs9uNgy",
+  "tags": []
+}
