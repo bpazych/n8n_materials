@@ -15,8 +15,8 @@ This repo contain materials which helped me in my work or which i discover durin
 
 #### Integrations
 - [Slack API](./integrations/slack_api/n8n_slack_api_integration.md) 
-- [Google API](./integrations/google_api/)
-- [Supabase API](./integrations/supabase_api/)
+- [Google API](./integrations/google_api/google_api.md)
+- [Supabase API](./integrations/supabase_api/supabase_api.md)
 
 
 #### Performance and benchmarks
