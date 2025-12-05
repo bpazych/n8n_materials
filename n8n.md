@@ -17,3 +17,8 @@ This repo contain materials which helped me in my work or which i discover durin
 - [Slack API](./integrations/slack_api/n8n_slack_api_integration.md) 
 - [Google API](./integrations/google_api/)
 - [Supabase API](./integrations/supabase_api/)
+
+
+#### Performance and benchmarks
+
+- [Relaive comparions of service/self-host n8n and nodejs](./performance/n8n%20performance.md)
