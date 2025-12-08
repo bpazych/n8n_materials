@@ -1,0 +1,115 @@
+{
+  "name": "grafana_integration",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        -96
+      ],
+      "id": "fb6bab51-1d07-4f31-bf52-bddfda0b720c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "const INSTANCE_ID = \"1462614\";\nconst API_KEY = \"TOKEN\";\n\nconst authPair = `${INSTANCE_ID}:${API_KEY}`;\nconst encoded = Buffer.from(authPair).toString('base64');\n\n\nreturn {\"token\":encoded};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        -96
+      ],
+      "id": "0a18a657-8a6b-4892-b163-5d44bd837c97",
+      "name": "grafana_token"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://otlp-gateway-prod-eu-north-0.grafana.net/otlp/v1/logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Basic {{ $json.token}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"resourceLogs\": [{\n      \"resource\": {\n        \"attributes\": [\n          {\"key\": \"service.name\", \"value\": {\"stringValue\": \"curl-app\"}}\n        ]\n      },\n      \"scopeLogs\": [{\n        \"logRecords\": [{\n          \"timeUnixNano\": \"{{Date.now() * 1e6}}\",\n          \"body\": {\"stringValue\": \"{{ $('data_to_log').item.json.dataToLog }}\"}\n        }]\n      }]\n    }]\n  }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        -96
+      ],
+      "id": "0fe28de5-570d-46ed-814f-e40e593270fe",
+      "name": "send log"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\"dataToLog\":\"Hey! i'm log!\"}\n]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        -96
+      ],
+      "id": "523a5f67-a72a-4fbe-b741-b2a58a4e5616",
+      "name": "data_to_log"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "data_to_log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "grafana_token": {
+      "main": [
+        [
+          {
+            "node": "send log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "data_to_log": {
+      "main": [
+        [
+          {
+            "node": "grafana_token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f63b1015-684d-43ac-b4f2-69adf67c8e88",
+  "meta": {
+    "instanceId": "dc78cbc1a2553fd481d42da99d71934367ccaba215b7668ea5470221cdd38d8e"
+  },
+  "id": "xMxEYQBbB7Q5h48T",
+  "tags": []
+}
