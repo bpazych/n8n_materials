@@ -17,6 +17,7 @@ This repo contain materials which helped me in my work or which i discover durin
 - [Slack API](./integrations/slack_api/n8n_slack_api_integration.md) 
 - [Google API](./integrations/google_api/google_api.md)
 - [Supabase API](./integrations/supabase_api/supabase_api.md)
+- [Grafana Loki API](./integrations/grafana_loki/grafana_loki.md)
 
 
 #### Performance and benchmarks
