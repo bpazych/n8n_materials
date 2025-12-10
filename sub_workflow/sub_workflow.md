@@ -24,11 +24,12 @@ To show that we need 2 workflows:
 
 We moved token verification in separate workflow - because often you need work with token parse more than one time, and the main implementation of sub workflow doesn't actually changes, same flow - JWT token in -> Payload data out.
 
-Here is main workflow ([link on json file](./main-flow.json))
+Here is main workflow ([link to json file](./main-flow.json))
 
 
 <img src="Pasted%20image%2020251210140516.png" style="width:750px;margin-left:auto;display:block;margin-right:auto;"/>
-Here is sub-workflow - token verification ([link on json file](./token_verification.json))
+
+Here is sub-workflow - token verification ([link to json file](./token_verification.json))
 
 <img src="Pasted%20image%2020251210140844.png" style="width:750px;margin-left:auto;display:block;margin-right:auto;"/>
 
