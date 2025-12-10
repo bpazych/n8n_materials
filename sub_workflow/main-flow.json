@@ -1,0 +1,155 @@
+{
+  "name": "main-flow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -112
+      ],
+      "id": "a98e8796-f9fc-4c0a-bf7a-dee0fda9c88e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c6cb0e9f-cf54-4249-8a41-e9afcc5e1520",
+              "name": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30",
+              "type": "string"
+            },
+            {
+              "id": "606f187a-08b6-4d24-8211-da565deb493f",
+              "name": "someData",
+              "value": "123",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        -112
+      ],
+      "id": "1f8e81ee-e429-4c9a-8133-84091bf651fc",
+      "name": "data"
+    },
+    {
+      "parameters": {
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        -112
+      ],
+      "id": "407fc795-3f32-4330-8475-307ac14a40aa",
+      "name": "send_dummy_slack",
+      "webhookId": "c40a79dc-a5c0-4280-bd64-7da03a1e5c6d",
+      "credentials": {
+        "slackApi": {
+          "id": "wTpnxVitiDlDxrNY",
+          "name": "Voice manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Jf4aU564QEs7V0hy",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Jf4aU564QEs7V0hy",
+          "cachedResultName": "token_verification"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "token": "={{ $json.token }}"
+          },
+          "matchingColumns": [
+            "token"
+          ],
+          "schema": [
+            {
+              "id": "token",
+              "displayName": "token",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        -112
+      ],
+      "id": "850c4d50-a5ef-47b5-9273-6d706f3ab26c",
+      "name": "get_payload_data"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "data": {
+      "main": [
+        [
+          {
+            "node": "get_payload_data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_payload_data": {
+      "main": [
+        [
+          {
+            "node": "send_dummy_slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "65e79882-7944-442c-849c-5372ef70fe82",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc78cbc1a2553fd481d42da99d71934367ccaba215b7668ea5470221cdd38d8e"
+  },
+  "id": "44Q1oXgMDG1J8zBP",
+  "tags": []
+}

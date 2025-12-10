@@ -1,0 +1,285 @@
+{
+  "name": "token_verification",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b030d3da-960d-495f-baa9-eddef6b71076",
+              "name": "code",
+              "value": 401,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -880,
+        352
+      ],
+      "id": "ebf07031-f2db-4d87-9335-41844dd38425",
+      "name": "401"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "76844fb2-97c0-4d87-b28d-46e32cd4f78d",
+              "name": "code",
+              "value": 403,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -416,
+        272
+      ],
+      "id": "3ec7f56b-b8dd-4148-9ed5-e8179da1d502",
+      "name": "403"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "token"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1360,
+        240
+      ],
+      "id": "0a1df205-a7b4-48b8-a4fd-89aafb60079f",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "decode",
+        "token": "={{ $json.token}}",
+        "options": {
+          "complete": true
+        }
+      },
+      "type": "n8n-nodes-base.jwt",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        160
+      ],
+      "id": "e5576c5b-4e3e-4c62-bddb-511278bef2ed",
+      "name": "JWT",
+      "credentials": {
+        "jwtAuth": {
+          "id": "DHdm7wbGLoDBwVIE",
+          "name": "JWT Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cd478c21-de8e-4b21-9ac9-822a128618e7",
+              "leftValue": "={{ $json.token }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1120,
+        240
+      ],
+      "id": "fe6fff8a-a74d-4bf3-b51b-04385c83165a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "faa32f8b-365c-452d-8497-b682b61de8ea",
+              "name": "sub",
+              "value": "={{ $json.payload.sub }}",
+              "type": "string"
+            },
+            {
+              "id": "66b770b9-79b6-4184-99e7-aaaa11d621ab",
+              "name": "name",
+              "value": "={{ $json.payload.name }}",
+              "type": "string"
+            },
+            {
+              "id": "e698e05e-ef89-4f2e-aebc-bfbaafc52d64",
+              "name": "admin",
+              "value": "={{ $json.payload.admin }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -416,
+        80
+      ],
+      "id": "64f89c47-89ec-4600-957c-e94c7e1900ad",
+      "name": "map_token_payload"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9fed3fb3-7a49-49b4-bf64-0d9bf51ea1ac",
+              "leftValue": "={{ $json.payload }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c059feaa-2334-4cb1-b84d-03b14c98820a",
+              "leftValue": "={{ $json.payload.sub }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -672,
+        160
+      ],
+      "id": "f4d25225-93f8-4e5c-bc0c-0541dd33de12",
+      "name": "is_sub"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JWT": {
+      "main": [
+        [
+          {
+            "node": "is_sub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "JWT",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is_sub": {
+      "main": [
+        [
+          {
+            "node": "map_token_payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "403",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9fb51ed3-e8ec-4988-a2bb-870803a7a564",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc78cbc1a2553fd481d42da99d71934367ccaba215b7668ea5470221cdd38d8e"
+  },
+  "id": "Jf4aU564QEs7V0hy",
+  "tags": [
+    {
+      "createdAt": "2025-12-10T11:52:58.887Z",
+      "updatedAt": "2025-12-10T11:52:58.887Z",
+      "id": "ercWTfLkxj9hZofq",
+      "name": "helper"
+    }
+  ]
+}
